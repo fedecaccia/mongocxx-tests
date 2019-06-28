@@ -1,0 +1,130 @@
+----------------------------------
+Install libmongoc & libbson
+----------------------------------
+from http://mongoc.org/libmongoc/current/installing.html
+
+choose "Building from git"
+
+$ git clone https://github.com/mongodb/mongo-c-driver.git
+$ cd mongo-c-driver
+#$ git checkout x.y.z  # To build a particular release
+$ python build/calc_release_version.py > VERSION_CURRENT
+$ mkdir cmake-build
+$ cd cmake-build
+$ cmake -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF ..
+$ make
+$ sudo make install
+
+should install libmongoc & libbson on usr/local/lib & /usr/local/include
+
+----------------------------------
+Install mongocxx
+----------------------------------
+from http://mongocxx.org/mongocxx-v3/installation/
+
+$ git clone https://github.com/mongodb/mongo-cxx-driver.git \
+ --branch releases/stable --depth 1
+$ cd mongo-cxx-driver/build
+$ cmake -DCMAKE_BUILD_TYPE=Release \ 
+ -DLIBMONGOC_DIR=/usr/local/include/libmongoc-1.0 \
+ -DLIBBSON_DIR=/usr/local/include/libbson-1.0 \
+ -DCMAKE_INSTALL_PREFIX=/usr/local \
+ -DBSONCXX_POLY_USE_MNMLSTC=1 .. # default on linux
+$ sudo make EP_mnmlstc_core
+$ make && sudo make install
+
+----------------------------------
+Upgrade
+----------------------------------
+
+Sometimes it's needed to upgrade gcc, g++ compiler versions.
+Check: https://groups.google.com/forum/#!topic/mongodb-user/t9I2QPAkTSg
+
+$ sudo apt-get upgrade
+
+----------------------------------
+Test
+----------------------------------
+
+compile test.cpp with:
+$ c++ --std=c++11 test.cpp -o test \
+ -I/usr/local/include/mongocxx/v_noabi \
+ -I/usr/local/include/bsoncxx/v_noabi \
+ -L/usr/local/lib -lmongocxx -lbsoncxx
+
+It requires MongoDB version at least 3.0
+
+----------------------------------
+Install or update MongoDB
+----------------------------------
+
+From: https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/
+
+From: https://askubuntu.com/questions/842592/apt-get-fails-on-16-04-or-18-04-installing-mongodb
+
+First, remove any existing repository file for MongoDB.
+
+$ sudo rm /etc/apt/sources.list.d/mongodb*.list
+
+Next, add the key: (without the key, the repository will not load)
+
+$ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv E52529D4
+
+Now, create a new MongoDB repository list file:
+
+$ sudo bash -c 'echo "deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/4.0 multiverse" > /etc/apt/sources.list.d/mongodb-org-4.0.list'
+
+Complete the installation with update of repositories then install:
+
+$ sudo apt update
+$ sudo apt install -y mongodb-org
+
+- Option 1:
+
+  Enable the mongod service and start it up:
+
+  $ systemctl enable mongod.service
+  $ systemctl start mongod.service
+
+  Check your mongodb version:
+
+  ~$ mongo --version
+  MongoDB shell version v4.0.5
+  git version: 3739429dd92b92d1b0ab120911a23d50bf03c412
+  OpenSSL version: OpenSSL 1.0.2g  1 Mar 2016
+  allocator: tcmalloc
+  modules: none
+  build environment:
+      distmod: ubuntu1604
+      distarch: x86_64
+      target_arch: x86_64
+
+  Check if the service is running:
+
+  ~$ systemctl status mongod.service
+  ● mongod.service - MongoDB Database Server
+    Loaded: loaded (/lib/systemd/system/mongod.service; enabled; vendor preset: enabled)
+    Active: active (running) since Mon 2019-01-21 00:33:51 MST; 7s ago
+      Docs: https://docs.mongodb.org/manual
+  Main PID: 2906 (mongod)
+    CGroup: /system.slice/mongod.service
+            └─2906 /usr/bin/mongod --config /etc/mongod.conf
+
+- Option 2
+# start:
+sudo service mongodb start
+
+# stop:
+sudo service mongodb stop
+
+# reinit:
+sudo service mongodb restart
+
+# status:
+sudo service mongodb status
+
+# shell
+mongo
+
+#version
+mongo --version
